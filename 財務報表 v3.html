@@ -3250,7 +3250,12 @@ function App() {
     }
     if(data.stableAssets   !== undefined) setStableAssets(data.stableAssets);
     if(data.realizedPnl    !== undefined) setRealizedPnl(data.realizedPnl);
-    if(data.incomeRecords  !== undefined) setIncomeRecords(data.incomeRecords);
+    // incomeRecords 已合併進 transactions（type==='income'），舊備份若有額外筆數則補入
+    if(data.incomeRecords?.length) {
+      const txIds = new Set((data.transactions||[]).map(t=>t.id));
+      const orphans = data.incomeRecords.filter(r=>!txIds.has(r.id));
+      if(orphans.length) setTransactions(prev=>[...prev,...orphans]);
+    }
     if(data.paymentRecords !== undefined) setPaymentRecords(data.paymentRecords);
     const restored = [
       data.assets        ?`資產 ${data.assets.length} 筆`         :'',
