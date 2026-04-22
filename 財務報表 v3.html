@@ -2855,6 +2855,7 @@ function InvestmentTab({investments, assets=[], liabilities=[], assetHistory=[],
 function DataModal({db, onImport, onMerge, onClose}) {
   const [pending, setPending] = React.useState(null);
   const [confirmOverwrite, setConfirmOverwrite] = React.useState(false);
+  const [confirmReset, setConfirmReset] = React.useState(false);
   const handleExport = () => {
     const data = JSON.stringify(db, null, 2);
     const blob = new Blob([data], {type:'application/json'});
@@ -2898,7 +2899,7 @@ function DataModal({db, onImport, onMerge, onClose}) {
                 <p style={{fontSize:12,fontWeight:600,color:'var(--red)',marginBottom:10}}>⚠️ 確定要覆蓋所有現有資料嗎？此操作無法復原。</p>
                 <div style={{display:'flex',gap:8}}>
                   <button style={{...btnSt(false),flex:1,fontSize:12}} onClick={()=>setConfirmOverwrite(false)}>取消</button>
-                  <button style={{...btnSt(true),flex:1,fontSize:12,background:'var(--red)'}} onClick={()=>{onImport(pending.data);setPending(null);setConfirmOverwrite(false);onClose();}}>確定覆蓋</button>
+                  <button style={{...btnSt(true),flex:1,fontSize:12,background:'var(--red)'}} onClick={()=>{try{onImport(pending.data);}catch(e){showToast(`匯入失敗：${e.message||e}`,'error');}setPending(null);setConfirmOverwrite(false);onClose();}}>確定覆蓋</button>
                 </div>
               </div>
             : <div style={{display:'flex',gap:8}}>
@@ -2927,12 +2928,16 @@ function DataModal({db, onImport, onMerge, onClose}) {
       <Card style={{borderStyle:'dashed', background:'var(--red-bg)', borderColor:'var(--red)'}}>
         <p style={{fontSize:13, fontWeight:600, color:'var(--red)', marginBottom:8}}>⚡ 強制重新整理</p>
         <p style={{fontSize:12, color:'var(--text2)', marginBottom:12, lineHeight:1.5}}>若您修改了 HTML 原始碼中的資料卻不見效，請使用此功能清除快取，並從原始碼重新載入。</p>
-        <button style={{...btnSt(true), background:'var(--red)'}} onClick={() => {
-          if (confirm('確定要清除瀏覽器快取並從網頁原始碼載入資料嗎？\n這將覆蓋您目前在網頁上「手動新增」但尚未寫入原始碼的資料。')) {
-            localStorage.clear();
-            location.reload();
-          }
-        }}>清除快取並從檔案載入</button>
+        {confirmReset
+          ? <div style={{background:'var(--red-bg)',border:'1px solid var(--red)',borderRadius:10,padding:'12px 14px'}}>
+              <p style={{fontSize:12,fontWeight:600,color:'var(--red)',marginBottom:10}}>⚠️ 確定要清除所有本地資料並重新載入嗎？此操作無法復原。</p>
+              <div style={{display:'flex',gap:8}}>
+                <button style={{...btnSt(false),flex:1,fontSize:12}} onClick={()=>setConfirmReset(false)}>取消</button>
+                <button style={{...btnSt(true),flex:1,fontSize:12,background:'var(--red)'}} onClick={()=>{localStorage.clear();location.reload();}}>確定清除</button>
+              </div>
+            </div>
+          : <button style={{...btnSt(true), background:'var(--red)'}} onClick={()=>setConfirmReset(true)}>清除快取並從檔案載入</button>
+        }
       </Card>
       <p style={{fontSize:11, color:'var(--text3)', marginTop:16, textAlign:'center'}}>資料儲存在瀏覽器本地，不會上傳至雲端。</p>
     </Modal>
