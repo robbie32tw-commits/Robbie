@@ -1,0 +1,6 @@
+# 個人備份與財務資料 — 不推上公開 repo
+*.json
+*.js
+bill/
+stock/
+_.html
